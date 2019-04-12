@@ -44,7 +44,7 @@ def check_slope(lines):
 def make_coordinates(image, line_parameters):
     slope, intercept = line_parameters
     y1 = image.shape[0]
-    y2 = int(y1*(3/5))
+    y2 = int(y1*3/5)
     x1 = int((y1 - intercept)/slope)
     x2 = int((y2 - intercept)/slope)
     return np.array([x1, y1, x2, y2])
@@ -61,17 +61,29 @@ def average_slope_intercept(image,lines):
             left_fit.append((slope, intercept))
         else:
             right_fit.append((slope, intercept))
-    left_fit_average = np.average(left_fit, axis = 0)
-    right_fit_average = np.average(right_fit, axis = 0)
-    left_line = make_coordinates(image, left_fit_average)
-    right_line = make_coordinates(image, right_fit_average)
-    return np.array([left_line, right_line])
+
+    if len(left_fit) == 0 and len(right_fit) != 0:
+      right_fit_average = np.average(right_fit, axis=0)
+      right_line = make_coordinates(image, right_fit_average)
+      return np.array([right_line])
+
+    if len(right_fit) == 0 and len(left_fit) != 0:
+      left_fit_average = np.average(left_fit, axis = 0)
+      left_line = make_coordinates(image, left_fit_average)
+      return np.array([left_line])
+
+    if left_fit and right_fit:
+      left_fit_average = np.average(left_fit, axis = 0)
+      right_fit_average = np.average(right_fit, axis = 0)
+      left_line = make_coordinates(image, left_fit_average)
+      right_line = make_coordinates(image, right_fit_average)    
+      return np.array([left_line, right_line])
 
 def display_lines(image, lines):
     line_image = np.zeros_like(image)
     for line in lines:
         x1,y1,x2,y2 = line.reshape(4)
-        cv2.line(line_image, (x1,y1), (x2,y2), (255, 0,0), 4)
+        cv2.line(line_image, (x1,y1), (x2,y2), (255, 0,0), 6)
     return line_image
 
 class image_converter:
@@ -87,33 +99,38 @@ class image_converter:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") #convert the ROS image msg to cv2 format image message, as "bgr8" format
     except CvBridgeError as e:
       print(e)
-    
+    '''
     (rows,cols,channels) = cv_image.shape
     if cols > 60 and rows > 60 :
       cv2.circle(cv_image, (50,50), 10, 255)
-
+    '''
     lane_image = np.copy(cv_image)
     canny_image = canny(cv_image)
     cropped_image = region_interest(canny_image)
     hough_lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180, 100, np.array([]), minLineLength = 50, maxLineGap = 5)
     lines = check_slope(hough_lines)
 
-    if lines is not None:
-      averaged_lines = average_slope_intercept(lane_image, lines)
-      line_image = display_lines(cv_image, averaged_lines)
-      combo_image = cv2.addWeighted(cv_image, 1, line_image, 1, 1)
-      cv_image = combo_image
-    
-    #else:
-    #    cv_image = combo_image
-    #cv_image = cropped_image
 
-    # cv2.imshow("Canny Image", canny_image)
-    # cv2.waitKey(3)
+    if lines is None:
+      cv_image = cv_image
+    else:
+      try:
+        averaged_lines = average_slope_intercept(lane_image, lines)
+        line_image = display_lines(cv_image, averaged_lines)
+        #cv2.imshow("result", line_image)
+        #cv2.waitKey(3)
+        combo_image = cv2.addWeighted(cv_image, 1, line_image, 1, 1)
+        cv_image = combo_image
+        print(averaged_lines)
+      except:
+        cv_image = cv_image
+  
+        
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8")) #bgr8 #mono8
     except CvBridgeError as e:
       print(e)
+
 
 def main(args):
   ic = image_converter()
