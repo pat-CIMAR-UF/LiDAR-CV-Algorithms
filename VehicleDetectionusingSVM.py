@@ -173,7 +173,7 @@ def extract_all_features(
     cell_per_block = 2,
     hog_channel = 0,
     hist_bins = 32,
-    bins_range = (0,255),
+    bins_range = (0,256),
     spatial_size = (32, 32)
 ):
     # Create a list to append feature vectors
@@ -192,7 +192,7 @@ def extract_all_features(
 #             SEQ_BRT.augment_image(image)            
         ]
 
-        for image in all_images:
+        for img in all_images:
             converted = convert_img_cspace(img, cspace)
             feature = extract_features(
                 converted,
@@ -211,28 +211,28 @@ def extract_all_features(
     return features
 
 def convert_to_std(img_paths, size):
+    """Loops through all image paths, cropping them to be square and resizing."""
     for loc in img_paths:
         image = mpimg.imread(loc)
-    
-    y = image.shape[0]
-    x = image.shape[1]
+        
+        y = image.shape[0]
+        x = image.shape[1]
+        if y < x:
+            crop_img = image[:y,0:y]
+        elif y > x:
+            crop_img = image[0:x,:x]
+        else:
+            crop_img = image
 
-    if y < x:
-        crop_img = image[:y, 0:x]
-    elif y > x:
-        crop_img = image[0:x, :x]
-    else:
-        crop_img = image
-    
-    resized = cv2.resize(crop_img, size)
-    mpimg.imsave(loc, resized)
+        resized = cv2.resize(crop_img, size)
+        mpimg.imsave(loc, resized)
 
 
 vehicle_img_locs = glob.glob(VEHICLE_IMG_PATHS)
 non_vehicle_img_locs = glob.glob(NON_VEHICLE_IMG_PATHS)
 
-#convert_to_std(vehicle_img_locs, (64, 64))
-#convert_to_std(non_vehicle_img_locs, (64, 64))
+convert_to_std(vehicle_img_locs, (64, 64))
+convert_to_std(non_vehicle_img_locs, (64, 64))
 
 # Set up figure for plotting
 f, axarr = plt.subplots(SAMPLE_DISPLAY, 2)
@@ -313,10 +313,9 @@ if not READ_PICKLE:
         hist_bins=HISTO_BINS,
         spatial_size=SPATIAL_SIZE
     )
-
-print("Time taken to extract features:  ", time.time() - t, "seconds")
-print("vehicle features:  ", len(vehicle_features))
-print("non vehicle features:  ", len(non_vehicle_features))
+    print("Time taken to extract features:  ", time.time() - t, "seconds")
+    print("vehicle features:  ", len(vehicle_features))
+    print("non vehicle features:  ", len(non_vehicle_features))
 
 if not READ_PICKLE:
 
@@ -365,3 +364,9 @@ if not READ_PICKLE:
     print(round(t2-t, 5), 'Seconds to predict', n_predict,'labels with SVC')
     pickle.dump(SVC, open("C:\\Users\\Yiqun\\Desktop\\svc.pkl","wb"))
     
+if READ_PICKLE:
+    X_scaler = pickle.load(open("C:\\Users\\Yiqun\\Desktop\\X_scaler.pkl", "rb"))
+    SVC = pickle.load(open("C:\\Users\\Yiqun\\Desktop\\svc.pkl", "rb"))
+
+
+
