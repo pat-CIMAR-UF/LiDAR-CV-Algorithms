@@ -363,8 +363,8 @@ if not READ_PICKLE:
     # Check the score of the SVC
     print('Test Accuracy of SVC = ', round(SVC.score(X_test, y_test), 4))
     # Check the cross-validation score
-    cv_scores = cross_val_score(SVC2, X, y, cv=CV_ITERS)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (cv_scores.mean(), cv_scores.std() * 2))
+    # cv_scores = cross_val_score(SVC2, X, y, cv=CV_ITERS)
+    # print("Accuracy: %0.2f (+/- %0.2f)" % (cv_scores.mean(), cv_scores.std() * 2))
     # Check prediction time for a single sample
     t = time.time()
     n_predict = 10
@@ -396,8 +396,8 @@ HEATMAP = True
 HEATMAP_THRES = 3.9
 FRAMES_AVG = 15
 
-VID_INPUT = "C:\\Users\\Yiqun\\Downloads\\CarND-Vehicle-Detection-master\\project_video.mp4"
-VID_OUT = "C:\\Users\\Yiqun\\Downloads\\project_video_result.mp4"
+VID_INPUT = "C:\\Users\\Yiqun\\Downloads\\CarND-Vehicle-Detection-master\\test_video.mp4"
+VID_OUT = "C:\\Users\\Yiqun\\Downloads\\test_video_demo.mp4"
 
 
 class Vehicle():
@@ -1001,7 +1001,7 @@ for i in range(6):
     # Plot images on figure
     img = mpimg.imread(vehicle_img_locs[i])
     draw_img = np.copy(img)
-
+    t = time.time()
     all_windows =  find_cars(
         img, 
         WIN_PARAMS, 
@@ -1049,7 +1049,8 @@ for i in range(6):
     # Find final boxes from heatmap using label function
     labels = label(heatmap)
     heatmap_img = draw_labeled_bboxes(draw_img, labels)
-    
+    t2 = time.time()
+    print(t2-t, "seconds each pic")
     axarr[i, 0].imshow(all_windows)
     axarr[i, 0].axis('off')
     axarr[i, 1].imshow(heatmap, cmap='hot')
