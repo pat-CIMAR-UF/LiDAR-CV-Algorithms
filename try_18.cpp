@@ -65,7 +65,7 @@ void mainLoop(const PointICloud& cloud_in, PointICloudPtr cloud_gnds){
 void filter(const PointICloud& cloud_in, PointICloudPtr cloud_ground){
 	PointICloudPtr cloud_ground2(new PointICloud);
 	mainLoop(cloud_in, cloud_ground2);
-	ROS_INFO_STREAM(" filter step: #" << cloud_ground2->size() << " Points");
+	//ROS_INFO_STREAM(" filter step: #" << cloud_ground2->size() << " Points");
 }
 
 void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& ros_pc2) {
@@ -84,8 +84,10 @@ void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& ros_pc2) {
 	std::vector<PointICloudPtr> cloud_clusters;
 	PointICloudPtr cloud_ground(new PointICloud);
 
-	filter(*cloud, cloud_ground);
+	//filter(*cloud, cloud_ground);
 	//ROS_INFO_STREAM(" after filter step: #" << cloud_ground->size() << " Points");
+	mainLoop(*cloud, cloud_ground);
+	ROS_INFO_STREAM(" after filter step: #" << cloud_ground->size() << " Points");
 
 	//publishCloud(ground_pub_, header, *cloud_ground);
 
@@ -94,8 +96,6 @@ void OnPointCloud(const sensor_msgs::PointCloud2ConstPtr& ros_pc2) {
 	pcl::toROSMsg(*cloud_ground, msg_cloud);
 	msg_cloud.header = header;
 	ground_pub_.publish(msg_cloud);
-	
-
 	
 
 	ROS_INFO_STREAM("Done");
