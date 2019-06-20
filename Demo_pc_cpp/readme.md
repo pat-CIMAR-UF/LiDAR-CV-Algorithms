@@ -1,3 +1,7 @@
-Subscribe the sensor_msgs::PointCloud2 \n
-Filter x axis data \n
+Subscribe the sensor_msgs::PointCloud2 
+
+
+Filter x axis data
+
+
 Publish another sensor_msgs::PointCloud2 msg
